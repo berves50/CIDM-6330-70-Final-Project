@@ -1,0 +1,183 @@
+001: ****************************************************************
+002: * Created by: B. ERVES 03/23/2021
+003: * REFERENCE : CORRECTIONS BY K.JACKSON  04/08/2021
+004: *
+005: ****************************************************************
+006:
+007: X.CNT = 0
+008: IF A.OPTION = 'STUDENTS' THEN
+009:   GOSUB XS.WRITE.STU.HEADER
+010:   X.HOLD.LINE = ""
+011:   FOR_EACH REFERENCED SELECTED STUDENT.COURSE.SEC.ID
+012:     IF X.HOLD.LINE NE V.SCS.COURSE.SECTION:'*':V.SCS.STUDENT THEN
+013:       X.OUTPUT.RECORD = V.SCS.COURSE.SECTION:'|':V.SCS.STUDENT:'|ILPP|Y|ena
+bled'
+014:       CALL S.WRITE.SEQ(X.OUTPUT.RECORD, X.FILE.POS, X.ERROR.OCCURRED, X.MSG
+)
+015:     END
+016:     X.HOLD.LINE = V.SCS.COURSE.SECTION:'*':V.SCS.STUDENT
+017:   END_EACH STUDENT.COURSE.SEC.ID
+018:
+019:   GOSUB XS.EXPORT.TO.EXCEL
+020: END
+021: *
+022: IF A.OPTION = 'COURSES' THEN
+023:   GOSUB XS.WRITE.CRS.HEADER
+024:
+025:   FOR_EACH REFERENCED SELECTED COURSE.SECTIONS.ID
+026:
+027:     X.OUTPUT.RECORD = V.COURSE.SECTIONS.ID:'|'
+028:     X.OUTPUT.RECORD := V.SEC.TERM:'-':V.SEC.NAME:'|'
+029:     X.OUTPUT.RECORD := V.SEC.TERM:' ':TRIM(V.SEC.SHORT.TITLE):' (':V.SEC.NA
+ME:')|'
+030:     X.OUTPUT.RECORD := 'ILPP|enabled|Y'
+031:     CALL S.WRITE.SEQ(X.OUTPUT.RECORD, X.FILE.POS, X.ERROR.OCCURRED, X.MSG)
+032:
+033:   END_EACH COURSE.SECTIONS.ID
+034:
+035:   GOSUB XS.EXPORT.TO.EXCEL
+036: END
+037: *
+038: IF A.OPTION = 'FACULTY' THEN
+039:   GOSUB XS.WRITE.FAC.HEADER
+040:   X.HOLD.LINE = ""
+041:   FOR_EACH REFERENCED SELECTED COURSE.SEC.FACULTY.ID
+042:     IF X.HOLD.LINE NE V.CSF.COURSE.SECTION:'*':V.CSF.FACULTY THEN
+043:       X.OUTPUT.RECORD = V.CSF.COURSE.SECTION:'|':V.CSF.FACULTY:'|ILPP|Y|ena
+bled'
+044:       CALL S.WRITE.SEQ(X.OUTPUT.RECORD, X.FILE.POS, X.ERROR.OCCURRED, X.MSG
+)
+045:     END
+046:     X.HOLD.LINE = V.CSF.COURSE.SECTION:'*':V.CSF.FACULTY
+047:   END_EACH COURSE.SEC.FACULTY.ID
+048:
+049:   GOSUB XS.EXPORT.TO.EXCEL
+050: END
+051: RETURN
+052:
+053: *******************
+054: XS.WRITE.STU.HEADER:
+055: *******************
+056:
+057: SHOWA 'Top of XS.WRITE.STU.HEADER'
+058: SHOWA ' '
+059:
+060: ** Open the export file for writing
+061: X.DIRECTORY.NAME = "_HOLD_"
+062: X.FILE.NAME = 'XILPD_STU':'_':A.RUN.DATE:'_':A.RUN.TIME
+063: X.FILE.POS = 1
+064: X.FILE.MODE = 'W'
+065: X.ERROR.OCCURRED = ""
+066: X.MSG = ""
+067: CALL S.OPEN.SEQ(X.DIRECTORY.NAME,X.FILE.NAME,X.FILE.POS,X.FILE.MODE,X.ERROR
+.OCCURRED,X.MSG)
+068:
+069: ** First delete any previous file in _HOLD_ so pre-pending
+070: ** does not occur. By writing an end of file first, it deletes any previous
+ data.
+071:
+072: CALL S.WRITE.EOF(X.FILE.POS,'','')
+073:
+074: ** Set the values of the columns headers
+075: X.STU.HEADERS     = "external_course_key"
+076: X.STU.HEADERS<-1> = "external_person_key"
+077: X.STU.HEADERS<-1> = "data_source_key"
+078: X.STU.HEADERS<-1> = "available_ind"
+079: X.STU.HEADERS<-1> = "row_status"
+080: CONVERT @FM TO "|" IN X.STU.HEADERS
+081:
+082: CALL S.WRITE.SEQ(X.STU.HEADERS,X.FILE.POS,X.ERROR.OCCURRED,X.MSG)
+083: RETURN
+084:
+085: *******************
+086: XS.WRITE.CRS.HEADER:
+087: *******************
+088:
+089: SHOWA 'Top of XS.WRITE.CRS.HEADER'
+090: SHOWA ' '
+091:
+092: ** Open the export file for writing
+093: X.DIRECTORY.NAME = "_HOLD_"
+094: X.FILE.NAME = 'XILPD_CRS':'_':A.RUN.DATE:'_':A.RUN.TIME
+095: X.FILE.POS = 1
+096: X.FILE.MODE = 'W'
+097: X.ERROR.OCCURRED = ""
+098: X.MSG = ""
+099: CALL S.OPEN.SEQ(X.DIRECTORY.NAME,X.FILE.NAME,X.FILE.POS,X.FILE.MODE,X.ERROR
+.OCCURRED,X.MSG)
+100:
+101: ** First delete any previous file in _HOLD_ so pre-pending
+102: ** does not occur. By writing an end of file first, it deletes any previous
+ data.
+103:
+104: CALL S.WRITE.EOF(X.FILE.POS,'','')
+105:
+106: ** Set the values of the columns headers
+107: X.CRS.HEADERS     = "external_course_key"
+108: X.CRS.HEADERS<-1> = "course_id"
+109: X.CRS.HEADERS<-1> = "course_name"
+110: X.CRS.HEADERS<-1> = "data_source_key"
+111: X.CRS.HEADERS<-1> = "row_status"
+112: X.CRS.HEADERS<-1> = "available_ind"
+113: CONVERT @FM TO "|" IN X.CRS.HEADERS
+114:
+115: CALL S.WRITE.SEQ(X.CRS.HEADERS,X.FILE.POS,X.ERROR.OCCURRED,X.MSG)
+116: RETURN
+117:
+118: *******************
+119: XS.WRITE.FAC.HEADER:
+120: *******************
+121:
+122: SHOWA 'Top of XS.WRITE.FAC.HEADER'
+123: SHOWA ' '
+124:
+125: ** Open the export file for writing
+126: X.DIRECTORY.NAME = "_HOLD_"
+127: X.FILE.NAME = 'XILPD_FAC':'_':A.RUN.DATE:'_':A.RUN.TIME
+128: X.FILE.POS = 1
+129: X.FILE.MODE = 'W'
+130: X.ERROR.OCCURRED = ""
+131: X.MSG = ""
+132: CALL S.OPEN.SEQ(X.DIRECTORY.NAME,X.FILE.NAME,X.FILE.POS,X.FILE.MODE,X.ERROR
+.OCCURRED,X.MSG)
+133:
+134: ** First delete any previous file in _HOLD_ so pre-pending
+135: ** does not occur. By writing an end of file first, it deletes any previous
+ data.
+136:
+137: CALL S.WRITE.EOF(X.FILE.POS,'','')
+138:
+139: ** Set the values of the columns headers
+140: X.FAC.HEADERS     = "external_course_key"
+141: X.FAC.HEADERS<-1> = "external_person_key"
+142: X.FAC.HEADERS<-1> = "data_source_key"
+143: X.FAC.HEADERS<-1> = "available_ind"
+144: X.FAC.HEADERS<-1> = "row_status"
+145: CONVERT @FM TO "|" IN X.FAC.HEADERS
+146:
+147: CALL S.WRITE.SEQ(X.FAC.HEADERS,X.FILE.POS,X.ERROR.OCCURRED,X.MSG)
+148: RETURN
+149:
+150: ****************
+151: XS.EXPORT.TO.EXCEL:
+152: ****************
+153: SHOWA 'Top of XS.EXPORT.TO.EXCEL'
+154: SHOWA ' '
+155:
+156: ** Close the CSV file, and prompt the user to open, save, or cancel the CSV
+ file.
+157:
+158: CALL S.CLOSE.SEQ(X.FILE.POS,X.ERROR.OCCURRED,X.MSG)
+159:
+160: X.TRANS.TYPE = "S"
+161: X.SOURCE.RECORD = X.FILE.NAME
+162: X.TARGET.RECORD = X.FILE.NAME:".txt"
+163: X.FILE.ACTION = 1
+164: X.NOTIFY.CLIENT = 1
+165: X.ERROR.OCCURRED = ""
+166: XL.ERROR.MSGS = ""
+167:
+168: CALL S_RIA_TRANSFER(X.TRANS.TYPE,X.DIRECTORY.NAME,X.SOURCE.RECORD,X.TARGET.
+RECORD,X.FILE.ACTION,X.NOTIFY.CLIENT,X.ERROR.OCCURRED,XL.ERROR.MSGS)
+169:
+170: RETURN
